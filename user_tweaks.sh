@@ -3,6 +3,17 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Keep only absolute entries on PATH. The .zshrc written further down puts
+# "./bin" first, which is handy interactively but poisonous here: run this from
+# a checkout that has a bin/ and every command below resolves to that checkout
+# instead of the installed system. Running it from ~/Projects/omarchy - the
+# obvious place, since that is where this script lives - shadowed every
+# `omarchy*` call with the 3.8.5 source tree's copy, so `omarchy restart shell`
+# failed with "Unknown Omarchy command" while 3.x commands that no longer exist
+# on the system would happily have run.
+PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep '^/' | paste -sd:)
+export PATH
+
 # AI tools
 if ! command -v npm >/dev/null; then
   echo "Install Omarchy's Javascript dev tools first"
