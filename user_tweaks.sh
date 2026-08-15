@@ -138,19 +138,6 @@ command -v ack >/dev/null || yay -S --noconfirm boxes
 echo "Installing GUI apps..."
 sudo pacman -S --noconfirm --needed emacs-wayland gimp inkscape dconf-editor
 
-# My clock settings
-echo "Setting the clock format..."
-SHELL_JSON=~/.config/omarchy/shell.json
-# Quattro's bar is Quickshell, not Waybar. The clock is a widget configured in
-# shell.json, its tokens are Qt's ("dddd", not "%A"), and it has no on-click:
-# left click opens a calendar panel and right click cycles the formats below.
-# Written with jq rather than `omarchy bar set` because that command splits its
-# value on commas before it reaches the shell (4.0.0.alpha).
-jq --arg format "dddd, MMMM d, yyyy (HH:mm)" --arg format_alt "d MMMM 'W'ww yyyy" \
-  '.bar.layout |= with_entries(.value |= map(
-     if .id == "omarchy.clock" then . + { format: $format, formatAlt: $format_alt } else . end))' \
-  "$SHELL_JSON" >/tmp/shell.json && mv /tmp/shell.json "$SHELL_JSON"
-
 # Hyprland config
 echo "tweaking Hyprland config..."
 
@@ -332,6 +319,11 @@ cp "$WORKSPACES_QML" "$WORKSPACES_PLUGIN/Workspaces.qml"
 # Array order is the button order, and every name must match the -w value of its
 # binding exactly. Only the always-running apps are persistent; the rest behave
 # like workspaces 6-10, appearing only when they hold a window.
+#
+# Written with jq rather than `omarchy bar set` because that command splits its
+# value on commas before it reaches the shell (4.0.0.alpha), which rejects any
+# multi-entry JSON.
+SHELL_JSON=~/.config/omarchy/shell.json
 jq --arg id "${USER}.workspaces" --argjson named '[
       { "name": "Chrome",   "persistent": true },
       { "name": "Terminal", "persistent": true },
